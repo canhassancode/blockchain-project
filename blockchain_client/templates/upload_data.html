@@ -52,13 +52,31 @@
 
     <div class="container alert alert-secondary">
         <form action="/upload-data" method="POST" enctype="multipart/form-data">
+            <div class="row">
+                <label class="col-sm-2">Sender Public Key:</label>
+                <div class="col-sm-10">
+                    <input type="text" name="sender_public_key" id="sender_public_key" class="form-control">
+                </div>
+            </div>
+
+            <br>
+
+            <div class="row">
+                <label class="col-sm-2">Sender Private Key:</label>
+                <div class="col-sm-10">
+                    <input type="text" name="sender_private_key" id="sender_private_key" class="form-control">
+                </div>
+            </div>
+
+            <br>
+            
             <div class="form-group">
-                <label>Select image</label>
                 <div class="custom-file">
                     <input type="file" class="custom-file-input" name='image' id='image'>
                     <label for="image" class="custom-file-label">Select image...</label>
                 </div>
             </div>  
+            
             <button type='submit' class='btn btn-primary btn-lg'>Upload data</button>
         </form>
 

@@ -12,6 +12,33 @@ import time
 import cv2
 import os
 
+
+#############################################
+# Constructor. User interface with this
+# class.
+#############################################
+class Data:
+
+    def __init__(self, public_key, private_key, data_hash):
+        self.public_key = public_key
+        self.private_key = private_key
+        self.data_hash = imageHash
+
+    def to_dict(self):
+        return OrderedDict({
+            'public_key': self.public_key,
+            'private_key': self.private_key,
+            'data_hash': self.data_hash
+        })
+
+    def sign_transaction(self):
+        private_key = RSA.import_key(
+            binascii.unhexlify(self.sender_private_key))
+        signer = PKCS1_v1_5.new(private_key)
+        hash = SHA.new(str(self.to_dict()).encode('utf8'))
+        return binascii.hexlify(signer.sign(hash)).decode('ascii')
+
+
 #############################################
 # Index, Upload Data and View Data pages with
 # flask initialisaiton
@@ -94,17 +121,21 @@ def upload_files():
             # recieve uploaded image and
             # save locally
             image = request.files["image"]
-            image.save(os.path.join(dirname, 'static/img/' + image.filename))
+            filename = secure_filename(image.filename)
+            image.save(os.path.join(dirname, 'static/img/' + filename))
 
             # opencv to read image and convert
             # to grayscale
-            recieved_image = cv2.imread(os.path.join(dirname, 'static/img/' + image.filename))
+            recieved_image = cv2.imread(os.path.join(
+                dirname, 'static/img/' + image.filename))
             recieved_image = cv2.cvtColor(recieved_image, cv2.COLOR_BGR2GRAY)
             imageHash = image_dhash(recieved_image)
             print("THE HASH IS ", imageHash)
 
             # remove local file and clean up
             os.remove(os.path.join(dirname, 'static/img/' + image.filename))
+
+    # transaction = Transaction()
 
     return render_template('upload_data.html'), 200
 
