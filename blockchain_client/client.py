@@ -22,7 +22,7 @@ class Data:
     def __init__(self, public_key, private_key, data_hash):
         self.public_key = public_key
         self.private_key = private_key
-        self.data_hash = imageHash
+        self.data_hash = data_hash
 
     def to_dict(self):
         return OrderedDict({
@@ -32,9 +32,9 @@ class Data:
         })
 
     def sign_transaction(self):
-        private_key = RSA.import_key(
-            binascii.unhexlify(self.sender_private_key))
-        signer = PKCS1_v1_5.new(private_key)
+        new_private_key = RSA.import_key(
+            binascii.unhexlify(self.private_key))
+        signer = PKCS1_v1_5.new(new_private_key)
         hash = SHA.new(str(self.to_dict()).encode('utf8'))
         return binascii.hexlify(signer.sign(hash)).decode('ascii')
 
@@ -113,31 +113,38 @@ def image_dhash(image, hashSize=8):
     return sum([2 ** i for (i, v) in enumerate(diff.flatten()) if v])
 
 
-@app.route("/upload-data", methods=["GET", "POST"])
+@app.route("/upload-data", methods=["POST"])
 def upload_files():
-    if request.method == "POST":
+    # if request.method == "POST":
 
-        if request.files:
-            # recieve uploaded image and
-            # save locally
-            image = request.files["image"]
-            filename = secure_filename(image.filename)
-            image.save(os.path.join(dirname, 'static/img/' + filename))
+    # if request.files:
+    # recieve uploaded image and
+    # save locally
+    image = request.files["image"]
+    filename = secure_filename(image.filename)
+    image.save(os.path.join(dirname, 'static/img/' + filename))
 
-            # opencv to read image and convert
-            # to grayscale
-            recieved_image = cv2.imread(os.path.join(
-                dirname, 'static/img/' + image.filename))
-            recieved_image = cv2.cvtColor(recieved_image, cv2.COLOR_BGR2GRAY)
-            imageHash = image_dhash(recieved_image)
-            print("THE HASH IS ", imageHash)
+    # opencv to read image and convert
+    # to grayscale
+    recieved_image = cv2.imread(os.path.join(
+        dirname, 'static/img/' + image.filename))
+    recieved_image = cv2.cvtColor(recieved_image, cv2.COLOR_BGR2GRAY)
+    imageHash = image_dhash(recieved_image)
+    print("THE HASH IS ", imageHash)
+    
 
-            # remove local file and clean up
-            os.remove(os.path.join(dirname, 'static/img/' + image.filename))
+    # remove local file and clean up
+    os.remove(os.path.join(dirname, 'static/img/' + image.filename))
 
-    # transaction = Transaction()
+    public_key = request.form['sender_public_key']
+    private_key = request.form['sender_private_key']
 
-    return render_template('upload_data.html'), 200
+    data = Data(public_key, private_key, imageHash)
+
+    response = {'data': data.to_dict(),
+                'signature': data.sign_transaction()}
+
+    return jsonify(response), 200
 
 #############################################
 # Localhost for Blockchain
