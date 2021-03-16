@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, redirect
 import Crypto
 import Crypto.Random
 from Crypto.PublicKey import RSA
@@ -8,6 +8,10 @@ import binascii
 from _collections import OrderedDict
 from werkzeug.utils import secure_filename
 
+import time
+import cv2
+import os
+
 #############################################
 # Index, Upload Data and View Data pages with
 # flask initialisaiton
@@ -15,13 +19,21 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
+
 @app.route('/upload/data')
 def upload_data():
     return render_template('upload_data.html')
+
+
+@app.route('/authenticate/data')
+def authenticate_data():
+    return render_template('authenticate_data.html')
+
 
 @app.route('/view/data')
 def view_data():
@@ -29,8 +41,8 @@ def view_data():
 
 
 #############################################
-# User Account/Wallet and generate data 
-# transaction to blockchain
+# User Account/Wallet Creation.
+# Public/Private key pair
 #############################################
 
 
@@ -56,8 +68,50 @@ def new_account():
 
 
 #############################################
+# Uploading data, Hashing image uploads and
+# parsing data
+#############################################
+
+dirname = os.path.dirname(__file__)
+
+
+# Implementation of difference hashing
+def image_dhash(image, hashSize=8):
+    # resize the input image to satisfy a 8*8 dimensional
+    # image
+    resized = cv2.resize(image, (hashSize + 1, hashSize))
+
+    diff = resized[:, 1:] > resized[:, :-1]
+
+    return sum([2 ** i for (i, v) in enumerate(diff.flatten()) if v])
+
+
+@app.route("/upload-data", methods=["GET", "POST"])
+def upload_files():
+    if request.method == "POST":
+
+        if request.files:
+            # recieve uploaded image and
+            # save locally
+            image = request.files["image"]
+            image.save(os.path.join(dirname, 'static/img/' + image.filename))
+
+            # opencv to read image and convert
+            # to grayscale
+            recieved_image = cv2.imread(os.path.join(dirname, 'static/img/' + image.filename))
+            recieved_image = cv2.cvtColor(recieved_image, cv2.COLOR_BGR2GRAY)
+            imageHash = image_dhash(recieved_image)
+            print("THE HASH IS ", imageHash)
+
+            # remove local file and clean up
+            os.remove(os.path.join(dirname, 'static/img/' + image.filename))
+
+    return render_template('upload_data.html'), 200
+
+#############################################
 # Localhost for Blockchain
 #############################################
+
 
 # This section hosts the flask html site
 if __name__ == '__main__':
