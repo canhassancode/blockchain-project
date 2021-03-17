@@ -85,8 +85,8 @@
     </div>
 
     <!-- Modal for confirmation of data -->
-    <div class="modal modal-alert fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModal"
-        aria-hidden="true">
+    <div class="modal modal-alert fade" id="confirmationModal" tabindex="-1" role="dialog"
+        aria-labelledby="confirmationModal" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
 
@@ -147,8 +147,8 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-                    <button type="button" id="button_confirm_transaction" class="btn btn-success">Confirm
-                        Transaction</button>
+                    <button type="button" id="button_confirm_upload" class="btn btn-success">Confirm
+                        Upload</button>
                 </div>
 
             </div>
@@ -156,7 +156,7 @@
     </div>
 
     <!-- Alert Message for successful transaction -->
-    <div class="modal modal-alert fade" id="success_transaction_modal" tabindex="-1" role="dialog"
+    <div class="modal modal-alert fade" id="success_upload_modal" tabindex="-1" role="dialog"
         aria-labelledby="basicModal" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -191,31 +191,57 @@
 
 
     <script>
-        $("form#data_form").submit(function (e) {
-            e.preventDefault();
-            var formData = new FormData(this);
+        $(function () {
+            $("form#data_form").submit(function (e) {
+                e.preventDefault();
+                var formData = new FormData(this);
 
-            $.ajax({
-                url: "/upload-data",
-                type: 'POST',
-                dataType: 'json',
-                data: formData,
-                cache: false,
-                contentType: false,
-                processData: false,
-                success: function (response) {
-                    document.getElementById('confirm_public_key').value = response['data']['public_key'];
-                    document.getElementById('confirm_private_key').value = response['data']['private_key'];
-                    document.getElementById('data_hash').value = response['data']['data_hash'];
-                    document.getElementById('signature').value = response['signature'];
-                    console.log("it worked");
+                $.ajax({
+                    url: "/upload-data",
+                    type: 'POST',
+                    dataType: 'json',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        document.getElementById('confirm_public_key').value = response['data']['public_key'];
+                        document.getElementById('confirm_private_key').value = response['data']['private_key'];
+                        document.getElementById('data_hash').value = response['data']['data_hash'];
+                        document.getElementById('signature').value = response['signature'];
+                        console.log("it worked");
 
-                    $('#confirmationModal').modal('show');
-                },
-                error: function (error) {
-                    console.log(error);
-                }
+                        $('#confirmationModal').modal('show');
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }
+                });
             });
+
+            $('#button_confirm_upload').click(function () {
+                $.ajax({
+                    url: 'http://127.0.0.1:5001/data-new',
+                    // url: document.getElementById('node_url').value + '/data-new',
+                    type: "POST",
+                    dataType: "json",
+                    header: {"Access-Control-Allow-Origin": "*"},
+                    data: $('#confirm_data_upload').serialize(),
+                    success: function(response) {
+                        
+                        $('#confirmationModal').modal('hide');
+                        $('#success_upload_modal').modal('show');
+
+
+                    },
+                    error: function(error) {
+                        console.log(error);
+                        console.log(document.getElementById('node_url').value + '/data-new');
+                    }
+
+                });
+            });
+
         });
     </script>
 
