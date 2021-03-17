@@ -17,12 +17,13 @@ import os
 # Constructor. User interface with this
 # class.
 #############################################
+
 class Data:
 
     def __init__(self, public_key, private_key, data_hash):
-        self.public_key = public_key
-        self.private_key = private_key
-        self.data_hash = data_hash
+        self.public_key     = public_key
+        self.private_key    = private_key
+        self.data_hash      = data_hash
 
     def to_dict(self):
         return OrderedDict({
@@ -34,8 +35,8 @@ class Data:
     def sign_transaction(self):
         new_private_key = RSA.import_key(
             binascii.unhexlify(self.private_key))
-        signer = PKCS1_v1_5.new(new_private_key)
-        hash = SHA.new(str(self.to_dict()).encode('utf8'))
+        signer  = PKCS1_v1_5.new(new_private_key)
+        hash    = SHA.new(str(self.to_dict()).encode('utf8'))
         return binascii.hexlify(signer.sign(hash)).decode('ascii')
 
 
@@ -76,10 +77,10 @@ def view_data():
 @app.route('/new/account')
 def new_account():
     # this exists through ajax function for generate wallet. Returns this function
-    random_gen = Crypto.Random.new().read  # generate random number for RSA
+    random_gen  = Crypto.Random.new().read  # generate random number for RSA
     # RSA of 1024 bits
     private_key = RSA.generate(1024, random_gen)
-    public_key = private_key.public_key()
+    public_key  = private_key.public_key()
 
     """
     response is a dictionary as it is a json
@@ -111,6 +112,7 @@ def image_dhash(image, hashSize=8):
     diff = resized[:, 1:] > resized[:, :-1]
 
     return sum([2 ** i for (i, v) in enumerate(diff.flatten()) if v])
+    # code referenced in README
 
 
 @app.route("/upload-data", methods=["POST"])
@@ -126,11 +128,11 @@ def upload_files():
 
     # opencv to read image and convert
     # to grayscale
-    recieved_image = cv2.imread(os.path.join(
+    recieved_image  = cv2.imread(os.path.join(
         dirname, 'static/img/' + image.filename))
-    recieved_image = cv2.cvtColor(recieved_image, cv2.COLOR_BGR2GRAY)
-    imageHash = image_dhash(recieved_image)
-    print("THE HASH IS ", imageHash)
+    recieved_image  = cv2.cvtColor(recieved_image, cv2.COLOR_BGR2GRAY)
+    imageHash       = image_dhash(recieved_image)
+    print("THE HASH IS", imageHash)
     
 
     # remove local file and clean up
