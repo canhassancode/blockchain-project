@@ -214,15 +214,17 @@
                         $('#confirmationModal').modal('show');
                     },
                     error: function (error) {
+                        // IMPLEMENT MODAL TO HANDLE ERROR FOR DISPLAY
                         console.log(error);
+                        alert("File Exists on Blockchain");
                     }
                 });
             });
 
             $('#button_confirm_upload').click(function () {
                 $.ajax({
-                    url: 'http://127.0.0.1:5001/data-new',
-                    // url: document.getElementById('node_url').value + '/data-new',
+                    // url: 'http://127.0.0.1:5001/data-new',
+                    url: document.getElementById('node_url').value + '/data-new',
                     type: "POST",
                     dataType: "json",
                     header: {"Access-Control-Allow-Origin": "*"},
@@ -236,7 +238,7 @@
                     },
                     error: function(error) {
                         console.log(error);
-                        console.log(document.getElementById('node_url').value + '/data-new');
+                        // console.log(document.getElementById('node_url').value + '/data-new');
                     }
 
                 });
