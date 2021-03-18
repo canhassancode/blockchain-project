@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Client Side</title>
+
+    <link rel="stylesheet" href="/static/vendor/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/vendor/DataTables/css/datatables.min.css">
+    <link rel="stylesheet" href="/static/vendor/font-awesome/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/css/custom.css">
+
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a href="#" class="navbar-brand">Blockchain Client</a>
+
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a href="/" class="nav-link">Account Generator</a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="/upload/data" class="nav-link">Upload Data</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/authenticate/data" class="nav-link">Authenticate Data</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/view/data" class="nav-link">View Data</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <div class="card-body">
+                    <h4 class="card-title">Upload Data:</h4>
+                    <p class="card-text">Fill in all details to upload data to blockchain</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container alert alert-secondary">
+        <!-- <form action="/upload-data" method="POST" enctype="multipart/form-data" id="data_form"> -->
+        <form id="data_form" enctype="multipart/form-data" method="post">
+            <div class="row">
+                <label class="col-sm-2">Sender Public Key:</label>
+                <div class="col-sm-10">
+                    <input type="text" name="sender_public_key" id="sender_public_key" class="form-control">
+                </div>
+            </div>
+
+            <br>
+
+            <div class="row">
+                <label class="col-sm-2">Sender Private Key:</label>
+                <div class="col-sm-10">
+                    <input type="text" name="sender_private_key" id="sender_private_key" class="form-control">
+                </div>
+            </div>
+
+            <br>
+
+            <div class="form-group">
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" name='image' id='image'>
+                    <label for="image" class="custom-file-label">Select image...</label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" name="submit_data" id="submit_data">Upload
+                data</button>
+        </form>
+
+    </div>
+
+    <!-- Modal for confirmation of data -->
+    <div class="modal modal-alert fade" id="confirmationModal" tabindex="-1" role="dialog"
+        aria-labelledby="confirmationModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <div class="modal-title col-md-10">Confirm details, enter a blockchain node url and
+                        click on "Confirm Transaction" to finalize.</div>
+                    <button type="button" class="close col-md-2" data-dismiss="modal"
+                        aria-hidden="true">&times;</button>
+                </div>
+
+                <div class="modal-body">
+
+                    <form id="confirm_data_upload">
+                        <div class="row">
+                            <label class="col-sm-12">Public Key</label>
+                            <div class="col-sm-12">
+                                <input type="text" name="confirm_public_key" id="confirm_public_key" rows="2"
+                                    class="form-control" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <label class="col-sm-12">Private Key</label>
+                            <div class="col-sm-12">
+                                <input type="text" name="confirm_private_key" id="confirm_private_key" rows="2"
+                                    class="form-control" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <label class="col-sm-12">Data Hash</label>
+                            <div class="col-sm-12">
+                                <input type="text" name="data_hash" id="data_hash" rows="2" class="form-control"
+                                    readonly>
+                            </div>
+                        </div>
+
+
+                        <div class="row">
+                            <label class="col-sm-12">Signature:</label>
+                            <div class="col-sm-12">
+                                <input type="text" name="signature" id="signature" rows="2" class="form-control"
+                                    readonly>
+                            </div>
+                        </div>
+
+                    </form>
+
+                    <div class="row">
+                        <label class="col-sm-12">Blockchain Node URL:</label>
+                        <div class="col-sm-12">
+                            <input type="text" name="node_url" id="node_url" rows="2" class="form-control"
+                                value="http://127.0.0.1:5001">
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                    <button type="button" id="button_confirm_upload" class="btn btn-success">Confirm
+                        Upload</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Message for successful transaction -->
+    <div class="modal modal-alert fade" id="success_upload_modal" tabindex="-1" role="dialog"
+        aria-labelledby="basicModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="alert alert-success" role="alert">
+                        <h4 class="alert-heading">Successful Transaction!</h4>
+                        <p>You successfully completed your transaction. It will be added to the next block.</p>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" id="button_confirm_transaction" class="btn btn-success"
+                        data-dismiss="modal">OK</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <script src="/static/vendor/jquery/jquery.min.js"></script>
+    <script src="/static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/vendor/DataTables/js/datatables.min.js"></script>
+    <script src="/static/vendor/DataTables/js/ellipsis.js"></script>
+
+
+
+
+    <script>
+        $(function () {
+            $("form#data_form").submit(function (e) {
+                e.preventDefault();
+                var formData = new FormData(this);
+
+                $.ajax({
+                    url: "/upload-data",
+                    type: 'POST',
+                    dataType: 'json',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    success: function (response) {
+                        document.getElementById('confirm_public_key').value = response['data']['public_key'];
+                        document.getElementById('confirm_private_key').value = response['data']['private_key'];
+                        document.getElementById('data_hash').value = response['data']['data_hash'];
+                        document.getElementById('signature').value = response['signature'];
+                        console.log("it worked");
+
+                        $('#confirmationModal').modal('show');
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }
+                });
+            });
+
+            $('#button_confirm_upload').click(function () {
+                $.ajax({
+                    url: 'http://127.0.0.1:5001/data-new',
+                    // url: document.getElementById('node_url').value + '/data-new',
+                    type: "POST",
+                    dataType: "json",
+                    header: {"Access-Control-Allow-Origin": "*"},
+                    data: $('#confirm_data_upload').serialize(),
+                    success: function(response) {
+                        
+                        $('#confirmationModal').modal('hide');
+                        $('#success_upload_modal').modal('show');
+
+
+                    },
+                    error: function(error) {
+                        console.log(error);
+                        console.log(document.getElementById('node_url').value + '/data-new');
+                    }
+
+                });
+            });
+
+        });
+    </script>
+
+</body>
+
+</html>
