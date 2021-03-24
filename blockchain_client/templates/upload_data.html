@@ -213,11 +213,22 @@
 
                         $('#confirmationModal').modal('show');
                     },
-                    error: function (error) {
+                    error: function (jqXHR, exception) {
                         // IMPLEMENT MODAL TO HANDLE ERROR FOR DISPLAY
-                        console.log(error);
-                        alert("File Exists on Blockchain");
-                    }
+                        var msg = '';
+                        if (jqXHR.status == 422) {
+                            msg = 'File Exists on Blockchain';
+                            alert(msg);
+                        } else if (jqXHR.status == 500) {
+                            msg = 'Internal Server Error [500].';
+                        } else if (exception === 'parsererror') {
+                            msg = 'Requested JSON parse failed.';
+                        } else if (exception === 'timeout') {
+                            msg = 'Time out error.';
+                        } else if (exception === 'abort') {
+                            msg = 'Ajax request aborted.';
+                        }
+                    },
                 });
             });
 
