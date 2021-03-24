@@ -7,6 +7,7 @@ from Crypto.Hash import SHA
 import binascii
 from _collections import OrderedDict
 from werkzeug.utils import secure_filename
+import requests
 
 import time
 import cv2
@@ -21,9 +22,9 @@ import os
 class Data:
 
     def __init__(self, public_key, private_key, data_hash):
-        self.public_key     = public_key
-        self.private_key    = private_key
-        self.data_hash      = data_hash
+        self.public_key = public_key
+        self.private_key = private_key
+        self.data_hash = data_hash
 
     def to_dict(self):
         return OrderedDict({
@@ -35,8 +36,8 @@ class Data:
     def sign_transaction(self):
         new_private_key = RSA.import_key(
             binascii.unhexlify(self.private_key))
-        signer  = PKCS1_v1_5.new(new_private_key)
-        hash    = SHA.new(str(self.to_dict()).encode('utf8'))
+        signer = PKCS1_v1_5.new(new_private_key)
+        hash = SHA.new(str(self.to_dict()).encode('utf8'))
         return binascii.hexlify(signer.sign(hash)).decode('ascii')
 
 
@@ -77,10 +78,10 @@ def view_data():
 @app.route('/new/account')
 def new_account():
     # this exists through ajax function for generate wallet. Returns this function
-    random_gen  = Crypto.Random.new().read  # generate random number for RSA
+    random_gen = Crypto.Random.new().read  # generate random number for RSA
     # RSA of 1024 bits
     private_key = RSA.generate(1024, random_gen)
-    public_key  = private_key.public_key()
+    public_key = private_key.public_key()
 
     """
     response is a dictionary as it is a json
@@ -100,6 +101,11 @@ def new_account():
 # parsing data
 #############################################
 
+# Machine Learning Deepfake detection
+def deeepfake_detection():
+    return ''
+
+
 dirname = os.path.dirname(__file__)
 
 
@@ -114,12 +120,15 @@ def image_dhash(image, hashSize=8):
     return sum([2 ** i for (i, v) in enumerate(diff.flatten()) if v])
     # code referenced in README
 
+@app.route("/upload/new", methods=["GET"])
+def test_function():
+    test_string = "IT WORKS"
+    response = {"hello": "key 1",
+    "bye bye": "key 2"}
+    return jsonify(response), 200
 
 @app.route("/upload-data", methods=["POST"])
 def upload_files():
-    # if request.method == "POST":
-
-    # if request.files:
     # recieve uploaded image and
     # save locally
     image = request.files["image"]
@@ -128,12 +137,39 @@ def upload_files():
 
     # opencv to read image and convert
     # to grayscale
-    recieved_image  = cv2.imread(os.path.join(
+    recieved_image = cv2.imread(os.path.join(
         dirname, 'static/img/' + image.filename))
-    recieved_image  = cv2.cvtColor(recieved_image, cv2.COLOR_BGR2GRAY)
-    imageHash       = image_dhash(recieved_image)
+    recieved_image = cv2.cvtColor(recieved_image, cv2.COLOR_BGR2GRAY)
+    imageHash = image_dhash(recieved_image)
     print("THE HASH IS", imageHash)
+
+    # CHECK HASH AGAIST BLOCKCHAIN 
+    blockchain_hashes = requests.get('http://127.0.0.1:5001/verify-hash')
+    blockchain_hash_list = blockchain_hashes.json()
+    blockchain_hash_check = []
     
+    # Blockchain verified hashes
+    for i in range(len(blockchain_hash_list['chain']) + 1):
+        try:
+            for j in range(len(blockchain_hash_list['chain'][i]['data'])):
+                if blockchain_hash_list['chain'][i]['data'][j]['data_hash'][j] != '':
+                    blockchain_hash_check.append(blockchain_hash_list['chain'][i]['data'][j]['data_hash'])
+        except Exception:
+            pass
+    
+    # Hashes on block before being hashed
+    for i in range(len(blockchain_hash_list['chain_data'])):
+        try: 
+            if blockchain_hash_list['chain_data'][i]['data_hash'] != '':
+                blockchain_hash_check.append(blockchain_hash_list['chain_data'][i]['data_hash'])
+        except Exception:
+            pass
+    
+    # Check if Hash exists
+    for i in blockchain_hash_check:
+        if str(i) == str(imageHash):
+            os.remove(os.path.join(dirname, 'static/img/' + image.filename))
+            return "file exists on blockchain", 422
 
     # remove local file and clean up
     os.remove(os.path.join(dirname, 'static/img/' + image.filename))
@@ -141,7 +177,7 @@ def upload_files():
     public_key = request.form['sender_public_key']
     private_key = request.form['sender_private_key']
 
-    data = Data(public_key, private_key, imageHash)
+    data = Data(public_key, private_key, str(imageHash))
 
     response = {'data': data.to_dict(),
                 'signature': data.sign_transaction()}

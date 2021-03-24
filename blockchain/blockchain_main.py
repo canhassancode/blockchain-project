@@ -282,6 +282,15 @@ def new_data():
                     str(data_result)}  # number of next
         return jsonify(response), 201
 
+
+@app.route('/verify-hash', methods=['GET'])
+def verify_hash():
+    
+    response = {'chain': blockchain.chain,
+    'chain_data': blockchain.chain_data}
+
+    return jsonify(response), 200
+
 #############################################
 # Nodes get and register to blockchain
 # Additionally, it resolves the nodes
